@@ -1,6 +1,4 @@
-FROM ubuntu:bionic
-RUN apt-get update -y && apt-get upgrade -y
-RUN apt-get install -y python3 python3-pip
-RUN pip3 install bottle
+FROM python:3.8
+RUN pip install bottle
 COPY . .
-CMD bash -c "python3 csv-to-rest.py"
+CMD python csv-to-rest.py
