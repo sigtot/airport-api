@@ -1,4 +1,4 @@
-from bottle import route, run, template, response, static_file, debug, redirect
+from bottle import route, run, template, response, static_file, debug, redirect, install, hook, request
 import csv
 import json
 import os.path
@@ -7,6 +7,22 @@ from os.path import isfile, join
 import argparse
 import glob
 import logging
+
+class EnableCors(object):
+  name = 'enable_cors'
+  api = 2
+
+  def apply(self, fn, context):
+    def _enable_cors(*args, **kwargs):
+      # set CORS headers
+      response.headers['Access-Control-Allow-Origin'] = '*'
+      response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, OPTIONS'
+      response.headers['Access-Control-Allow-Headers'] = 'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
+      if request.method != 'OPTIONS':
+        # actual request; reply with the actual response
+        return fn(*args, **kwargs)
+    return _enable_cors
+
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
@@ -53,6 +69,33 @@ if verbose and quiet:
   exit(101)
 
 # Routes
+@route('/<:re:.*>', method='OPTIONS')
+def enable_cors_generic_route():
+  """
+  This route takes priority over all others. So any request with an OPTIONS
+  method will be handled by this function.
+
+  See: https://github.com/bottlepy/bottle/issues/402
+
+  NOTE: This means we won't 404 any invalid path that is an OPTIONS request.
+  """
+  add_cors_headers()
+
+@hook('after_request')
+def enable_cors_after_request_hook():
+  """
+  This executes after every route. We use it to attach CORS headers when
+  applicable.
+  """
+  add_cors_headers()
+
+def add_cors_headers():
+  response.headers['Access-Control-Allow-Origin'] = '*'
+  response.headers['Access-Control-Allow-Methods'] = \
+    'GET, POST, PUT, OPTIONS'
+  response.headers['Access-Control-Allow-Headers'] = \
+    'Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token'
+
 @route('/')
 def home():
   return 'home page'
@@ -337,6 +380,8 @@ if __name__ == "__main__":
     logging.info("Data path: %s" % (csvpath))
     logging.info("Quiet? %s; Verbose? %s" % (quiet, verbose))
   read_file(csvfilename)
+
+  #install(EnableCors())
 
   if devmode:
     run(host='0.0.0.0', port=port, reloader=True)
