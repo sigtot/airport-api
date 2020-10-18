@@ -16,7 +16,31 @@ None
 
 ## Usage
 
+Start server on port `8983`:
+```
 python csv-to-rest.py
+```
+
+### Usage with docker
+```
+docker build . --tag airport-api:1.0.1
+docker run -p 8983:8983 airport-api:1.0.1
+```
+
+## Admin page
+http://localhost:8983/_admin
+
+## Example curls
+Get airport with IATA code `TRD`:
+```
+curl localhost:8983/get/iata_code/TRD
+```
+
+Get all large airports in Norway
+```
+curl localhost:8983/get/type/large_airport/iso_country/NO
+```
+
 
 ## Dependencies
 
