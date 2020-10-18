@@ -1,5 +1,4 @@
 db/
-data/
 .vscode
 *.pyc
 server.pem

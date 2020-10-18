@@ -236,12 +236,11 @@ def listValuesByFieldFiltered(field, filter, value):
 
 def read_file(fname):
   global csvfields, csvfilename, csvcontents, csvdict
-  logging.warn("read_file(" + fname + ") starting (" + csvfilename + ")...")
   csvfields = []
   csvfilename = fname
   csvcontents = []
   csvdict = {}
-  with open(os.sep.join([csvpath, csvfilename]), 'r') as csvfile:
+  with open(os.sep.join([csvpath, csvfilename]), 'r', encoding='utf-8', errors='replace') as csvfile:
     csvreader = csv.reader(csvfile, delimiter=',', quotechar='"')
     csvfields = next(csvreader) # Read in the field names
     # logging.debug("csvfields: %s" % (csvfields))
@@ -337,7 +336,6 @@ if __name__ == "__main__":
   if verbose or not quiet:
     logging.info("Data path: %s" % (csvpath))
     logging.info("Quiet? %s; Verbose? %s" % (quiet, verbose))
-
   read_file(csvfilename)
 
   if devmode:
